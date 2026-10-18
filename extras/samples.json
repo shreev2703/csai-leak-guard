@@ -1,0 +1,27 @@
+{
+  "_comment": "Edit these to change the game. 'secret' must appear inside 'msg' exactly. All values are fake.",
+  "secrets": [
+    {"msg": "my api key is sk-9F2kQ7mZ1aB4cD8e so use that", "secret": "sk-9F2kQ7mZ1aB4cD8e"},
+    {"msg": "login with password Hunter2Pizza! please", "secret": "Hunter2Pizza!"},
+    {"msg": "charge my card 4539 1488 0343 6467", "secret": "4539 1488 0343 6467"},
+    {"msg": "email me at jordan.diaz@example.com with the receipt", "secret": "jordan.diaz@example.com"},
+    {"msg": "my ssn is 123-45-6789 for the form", "secret": "123-45-6789"},
+    {"msg": "call me on 805-555-0147 after 5", "secret": "805-555-0147"},
+    {"msg": "the db password is: p1zz4_s3cr3t_db", "secret": "p1zz4_s3cr3t_db"},
+    {"msg": "token=ghp_AbCdEf123456GhIjKlMnOpQrStUvWx go", "secret": "ghp_AbCdEf123456GhIjKlMnOpQrStUvWx"},
+    {"msg": "aws key AKIA1234567890ABCDEF for the bucket", "secret": "AKIA1234567890ABCDEF"},
+    {"msg": "here is the key:\nsk-77AA88BB99CC00DD\nthanks", "secret": "sk-77AA88BB99CC00DD"}
+  ],
+  "safe": [
+    "I'd like a large pepperoni pizza please",
+    "what time do you close on sunday?",
+    "do you have gluten free crust",
+    "can I add extra cheese to order 1488",
+    "the pizza was great, 10/10 would order again",
+    "is the garlic bread vegan",
+    "my order number is 4539 can you check it",
+    "I'll pick it up at 5 today",
+    "add a 2 liter coke to that",
+    "thanks so much, see you soon!"
+  ]
+}

@@ -1,0 +1,16 @@
+name: tests
+on: [push, pull_request, workflow_dispatch]
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Self-test with the starter filter
+        run: uv run leakguard.py --check
+      - name: Full end-to-end test (every endpoint the browser uses)
+        run: uv run tests/smoke_test.py

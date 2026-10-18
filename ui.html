@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leak Guard — CSAI</title>
+<style>
+  :root{
+    --bg:#0f1420; --panel:#171e2e; --panel2:#1e2740; --ink:#e8edf7; --dim:#95a2bd;
+    --line:#2a3550; --accent:#5b9dff; --good:#37d399; --bad:#ff6b6b; --warn:#ffb454;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.5}
+  header{padding:18px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  header h1{font-size:19px;margin:0;font-weight:700}
+  header .shield{font-size:24px}
+  header .sub{color:var(--dim);font-size:13px}
+  .tabs{display:flex;gap:6px;margin-left:auto}
+  .tab{background:none;border:1px solid var(--line);color:var(--dim);padding:8px 16px;border-radius:9px;
+       font-size:14px;cursor:pointer;font-weight:600}
+  .tab.on{background:var(--panel2);color:var(--ink);border-color:var(--accent)}
+  main{max-width:1080px;margin:0 auto;padding:22px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:860px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .card h2{margin:0 0 4px;font-size:15px}
+  .card p.hint{margin:0 0 12px;color:var(--dim);font-size:13px}
+  textarea{width:100%;background:#0c1019;color:#dfe7f5;border:1px solid var(--line);border-radius:10px;
+    font-family:var(--mono);font-size:13px;padding:12px;resize:vertical;line-height:1.55}
+  #editor{min-height:420px;white-space:pre;overflow-wrap:normal;overflow-x:auto}
+  input[type=text]{width:100%;background:#0c1019;color:#dfe7f5;border:1px solid var(--line);
+    border-radius:9px;font-family:var(--mono);font-size:13px;padding:10px}
+  .row{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:12px}
+  button.act{border:none;border-radius:9px;padding:10px 16px;font-size:14px;font-weight:700;cursor:pointer}
+  .primary{background:var(--accent);color:#07122a}
+  .ghost{background:var(--panel2);color:var(--ink);border:1px solid var(--line)!important}
+  .mini{font-size:12px;color:var(--dim)}
+  .score{display:flex;align-items:baseline;gap:10px;margin:2px 0 10px}
+  .score .big{font-size:46px;font-weight:800;line-height:1}
+  .score .of{color:var(--dim);font-size:15px}
+  .meters{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:8px}
+  .meter{flex:1;min-width:150px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:11px 13px}
+  .meter .k{font-size:12px;color:var(--dim)}
+  .meter .v{font-size:20px;font-weight:700;margin-top:2px}
+  .list{margin:8px 0 0;padding:0;list-style:none;font-family:var(--mono);font-size:12.5px}
+  .list li{padding:8px 10px;border-radius:8px;margin-bottom:6px;background:#0c1019;border:1px solid var(--line)}
+  .leak{border-left:3px solid var(--bad)}
+  .over{border-left:3px solid var(--warn)}
+  .ok-line{border-left:3px solid var(--good)}
+  .tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px;margin-right:6px}
+  .tag.leak{background:rgba(255,107,107,.15);color:var(--bad)}
+  .tag.over{background:rgba(255,180,84,.15);color:var(--warn)}
+  .banner{border-radius:10px;padding:11px 13px;font-size:13.5px;margin-bottom:12px;display:none}
+  .banner.err{display:block;background:rgba(255,107,107,.12);border:1px solid var(--bad);color:#ffd4d4;font-family:var(--mono);font-size:12.5px}
+  .banner.saved{display:block;background:rgba(55,211,153,.12);border:1px solid var(--good);color:#c5ffe9}
+  .redout{font-family:var(--mono);font-size:13px;background:#0c1019;border:1px solid var(--line);
+    border-radius:9px;padding:11px;white-space:pre-wrap;word-break:break-word;margin-top:10px;min-height:44px}
+  .mark{color:var(--good);font-weight:700}
+  .capbig{font-size:22px;font-weight:800;margin:4px 0}
+  .cap-yes{color:var(--bad)} .cap-no{color:var(--good)}
+  .hide{display:none}
+  details{margin-top:12px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 13px}
+  details summary{cursor:pointer;font-weight:600;font-size:13.5px}
+  details ul{margin:8px 0 0;padding-left:18px;font-size:13px;color:var(--dim)}
+  code{background:#0c1019;border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-family:var(--mono);font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <span class="shield">🛡️</span>
+  <div>
+    <h1>Leak Guard</h1>
+    <div class="sub">Build the filter that scrubs secrets before they reach the AI</div>
+  </div>
+  <div class="tabs">
+    <button class="tab on" id="tabBuildBtn" onclick="show('build')">① Build &amp; Defend</button>
+    <button class="tab" id="tabAtkBtn" onclick="show('attack')">② Attack</button>
+  </div>
+</header>
+
+<main>
+  <!-- ======================= BUILD TAB ======================= -->
+  <section id="build">
+    <div class="grid">
+      <div class="card">
+        <h2>Your filter &nbsp;<span class="mini">filter.py</span></h2>
+        <p class="hint">Edit, then <b>Save</b>. Add blocked words, regex patterns, or your own Python at the bottom.</p>
+        <div id="saveBanner" class="banner"></div>
+        <textarea id="editor" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
+        <div class="mini" id="lineInfo" style="margin-top:6px">Line 1 · Tab key inserts 4 spaces</div>
+        <div class="row">
+          <button class="act primary" onclick="saveFilter()">💾 Save (Ctrl/Cmd+S)</button>
+          <button class="act ghost" onclick="runTest()">▶ Run self-test</button>
+          <button class="act ghost" onclick="resetFilter()">↺ Reset to starter</button>
+        </div>
+        <details>
+          <summary>Need regex help?</summary>
+          <ul>
+            <li><code>\d</code> = any digit, <code>\d{3}</code> = three digits in a row</li>
+            <li><code>[A-Za-z0-9]+</code> = one or more letters/numbers</li>
+            <li><code>\b</code> = a word boundary (edge of a word)</li>
+            <li>Full cheat sheet: <code>extras/CHEATSHEET.md</code> in your folder</li>
+          </ul>
+        </details>
+      </div>
+
+      <div class="card">
+        <h2>Scoreboard</h2>
+        <p class="hint">Catch every secret. Don't block the normal pizza messages.</p>
+        <div id="testEmpty" class="mini">Click <b>Run self-test</b> to see your score.</div>
+        <div id="testResults" class="hide">
+          <div class="score"><span class="big" id="scoreNum">–</span><span class="of">/ 100</span></div>
+          <div class="meters">
+            <div class="meter"><div class="k">Secrets caught</div><div class="v" id="mCaught">–</div></div>
+            <div class="meter"><div class="k">False alarms</div><div class="v" id="mFalse">–</div></div>
+          </div>
+          <ul class="list" id="testList"></ul>
+        </div>
+
+        <h2 style="margin-top:18px">Try one message</h2>
+        <p class="hint">See what your filter does to any message you type.</p>
+        <input type="text" id="tryMsg" placeholder="e.g. my api key is sk-ABC123 thanks"
+               onkeydown="if(event.key==='Enter')tryOne()">
+        <div class="row"><button class="act ghost" onclick="tryOne()">Run it</button></div>
+        <div class="redout" id="tryOut"></div>
+
+        <h2 style="margin-top:18px">Attacks on your filter</h2>
+        <p class="hint">Every attack other teams try on this laptop shows up here.</p>
+        <div class="mini" id="atkSummary">No attacks yet.</div>
+        <ul class="list" id="atkList"></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= ATTACK TAB ======================= -->
+  <section id="attack" class="hide">
+    <div class="card" style="max-width:640px;margin:0 auto">
+      <h2>Attack another team's filter</h2>
+      <p class="hint">
+        Move to another team's laptop. Write a message that hides a secret so their
+        filter <b>misses it</b>. Put the exact secret in the second box so the game can score it.
+        If the secret survives their filter, you capture it. <b>+3 points.</b>
+      </p>
+      <div id="atkBanner" class="banner"></div>
+      <label class="mini">Your team name (so the defenders know who got them)</label>
+      <input type="text" id="atkTeam" placeholder="e.g. Team 3" style="margin-bottom:10px">
+      <label class="mini">Your message (the secret must appear inside it)</label>
+      <input type="text" id="atkMsg" placeholder="e.g. the code is s k - A B C 1 2 3 read it carefully">
+      <label class="mini" style="display:block;margin-top:10px">The secret you hid (exact text)</label>
+      <input type="text" id="atkSecret" placeholder="e.g. sk-ABC123">
+      <div class="row"><button class="act primary" onclick="attack()">🎯 Launch attack</button></div>
+      <div id="atkResult" class="hide">
+        <div class="capbig" id="capLine"></div>
+        <div class="mini">What their filter produced:</div>
+        <div class="redout" id="atkOut"></div>
+      </div>
+      <details>
+        <summary>Attack ideas (fair game)</summary>
+        <ul>
+          <li>Space or dash out a key: <code>s k - A B C</code></li>
+          <li>Spell it backwards and say "read it right to left"</li>
+          <li>Hide it in the middle of a long normal sentence</li>
+          <li>Use an unusual secret format their patterns didn't expect</li>
+          <li>Rules: attack through this box only. Keep it clean — defenders read it out loud later.</li>
+        </ul>
+      </details>
+    </div>
+  </section>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+async function api(path, body){
+  const r = await fetch(path, {method: body?'POST':'GET',
+    headers:{'Content-Type':'application/json'}, body: body?JSON.stringify(body):undefined});
+  return r.json();
+}
+async function show(which){
+  // Save before leaving the editor, so attackers always hit the latest filter.
+  if(which==='attack'){ try{ await saveFilter(); }catch(e){} }
+  $('build').classList.toggle('hide', which!=='build');
+  $('attack').classList.toggle('hide', which!=='attack');
+  $('tabBuildBtn').classList.toggle('on', which==='build');
+  $('tabAtkBtn').classList.toggle('on', which==='attack');
+}
+
+// ---- Build tab ----
+async function loadState(){
+  const s = await api('/api/state');
+  $('editor').value = s.source || '';
+  if(s.error) showErr(s.error);
+}
+function showErr(msg){
+  const b=$('saveBanner'); b.className='banner err'; b.textContent='⚠ '+msg;
+}
+function showSaved(msg){
+  const b=$('saveBanner'); b.className='banner saved'; b.textContent='✓ '+msg;
+  setTimeout(()=>{b.className='banner';}, 2500);
+}
+async function saveFilter(){
+  const r = await api('/api/save', {source: $('editor').value});
+  if(r.error) showErr(r.error); else showSaved('Saved. Filter reloaded.');
+  return !r.error;
+}
+async function resetFilter(){
+  if(!confirm('Reset filter.py back to the starter? Your changes will be lost.')) return;
+  const r = await api('/api/reset', {});
+  await loadState();
+  if(!r.error) showSaved('Reset to the starter file.');
+}
+function esc(s){return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+function hiRedact(s){return esc(s).replace(/\[REDACTED\]/g,'<span class="mark">[REDACTED]</span>');}
+
+async function runTest(){
+  await saveFilter();
+  const r = await api('/api/test', {});
+  if(r.error){ showErr(r.error); return; }
+  $('testEmpty').classList.add('hide');
+  $('testResults').classList.remove('hide');
+  $('scoreNum').textContent = r.score;
+  $('scoreNum').style.color = r.score>=90?'var(--good)':r.score>=50?'var(--warn)':'var(--bad)';
+  $('mCaught').textContent = r.caught+' / '+r.secrets_total;
+  $('mFalse').textContent  = r.false_alarms+' / '+r.safe_total;
+  const list = $('testList'); list.innerHTML='';
+  if(r.missed.length===0 && r.false_alarms===0){
+    list.innerHTML='<li class="ok-line">🎉 Perfect! Every secret caught, no false alarms.</li>';
+  }
+  r.missed.forEach(m=>{
+    list.innerHTML += `<li class="leak"><span class="tag leak">LEAK</span>`+
+      `still exposed: ${esc(m.secret)}</li>`;
+  });
+  r.false_list.forEach(f=>{
+    list.innerHTML += `<li class="over"><span class="tag over">OVER-BLOCK</span>`+
+      `you changed a normal message: "${esc(f.msg)}"</li>`;
+  });
+}
+async function tryOne(){
+  await saveFilter();
+  const r = await api('/api/try', {message: $('tryMsg').value});
+  if(r.error){ $('tryOut').innerHTML='<span style="color:var(--bad)">⚠ '+esc(r.error)+'</span>'; return; }
+  $('tryOut').innerHTML = r.redacted ? hiRedact(r.redacted) : '<span class="mini">(empty)</span>';
+}
+
+// ---- Attack tab ----
+async function attack(){
+  const msg=$('atkMsg').value, secret=$('atkSecret').value, team=$('atkTeam').value;
+  try{ localStorage.setItem('lg-team', team); }catch(e){}
+  const r = await api('/api/challenge', {message:msg, secret:secret, team:team});
+  const b=$('atkBanner');
+  if(r.error){ b.className='banner err'; b.textContent='⚠ '+r.error; $('atkResult').classList.add('hide'); return; }
+  b.className='banner';
+  $('atkResult').classList.remove('hide');
+  if(r.captured){
+    $('capLine').innerHTML='<span class="cap-yes">🎯 CAPTURED! The secret got through. +3</span>';
+  }else{
+    $('capLine').innerHTML='<span class="cap-no">🛡️ Blocked. Their filter caught it.</span>';
+  }
+  $('atkOut').innerHTML = hiRedact(r.redacted);
+}
+
+// ---- Attacks on your filter (replay) ----
+async function loadAttacks(){
+  let r; try{ r = await api('/api/attacks', {}); }catch(e){ return; }
+  const a = r.attacks || [];
+  if(!a.length){ $('atkSummary').textContent='No attacks yet.'; $('atkList').innerHTML=''; return; }
+  const got = a.filter(x=>x.captured).length;
+  $('atkSummary').innerHTML = `${a.length} attack${a.length>1?'s':''} tried · `+
+    `<b style="color:var(--good)">${a.length-got} blocked</b> · <b style="color:var(--bad)">${got} got through</b>`;
+  $('atkList').innerHTML = a.slice(0,12).map(x=>
+    `<li class="${x.captured?'leak':'ok-line'}"><span class="tag ${x.captured?'leak':''}" `+
+    `style="${x.captured?'':'background:rgba(55,211,153,.15);color:var(--good)'}">`+
+    `${x.captured?'GOT THROUGH':'BLOCKED'}</span>${esc(x.team)} · ${esc(x.time)}<br>`+
+    `<span style="color:var(--dim)">${esc(x.message)}</span></li>`).join('');
+}
+
+// ---- Editor comfort: Tab = 4 spaces, show the current line number ----
+const ed = $('editor');
+ed.addEventListener('keydown', e=>{
+  if(e.key==='Tab' && !e.metaKey && !e.ctrlKey && !e.altKey){
+    e.preventDefault();
+    const s=ed.selectionStart, en=ed.selectionEnd;
+    ed.value = ed.value.slice(0,s)+'    '+ed.value.slice(en);
+    ed.selectionStart = ed.selectionEnd = s+4;
+    updateLine();
+  }
+});
+function updateLine(){
+  const line = ed.value.slice(0, ed.selectionStart).split('\n').length;
+  $('lineInfo').textContent = 'Line '+line+' · Tab key inserts 4 spaces';
+}
+['keyup','click','input'].forEach(ev=>ed.addEventListener(ev, updateLine));
+
+// Ctrl/Cmd+S saves
+document.addEventListener('keydown', e=>{
+  if((e.metaKey||e.ctrlKey) && e.key.toLowerCase()==='s'){ e.preventDefault(); saveFilter(); }
+});
+try{ $('atkTeam').value = localStorage.getItem('lg-team') || ''; }catch(e){}
+loadState();
+loadAttacks();
+setInterval(loadAttacks, 4000);
+</script>
+</body>
+</html>
