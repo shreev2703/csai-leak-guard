@@ -78,6 +78,8 @@ Each one beats a filter that only knows the exact shape. That's the lesson.
 ## If something goes wrong
 | Problem | Fix |
 | --- | --- |
+| Windows one-liner fails | Have them run the README's **Windows: if the one line doesn't work** steps one line at a time. Most common fix: close and reopen PowerShell after installing uv. |
+| Installer won't work at all | **Manual fallback:** `git clone https://github.com/shreev2703/csai-leak-guard.git`, `cd csai-leak-guard`, `python leakguard.py` (Mac: `python3`). Needs only Python 3.9+, no packages. No git? GitHub → Code → Download ZIP. |
 | A laptop won't install | Join a teammate. Every team only needs one laptop. |
 | Browser didn't open | Open the `http://127.0.0.1:8000` link the terminal printed. |
 | Someone broke `filter.py` | The page shows the line number; or click **Reset to starter**. |

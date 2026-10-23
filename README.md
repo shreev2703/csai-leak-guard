@@ -37,10 +37,51 @@ your browser. The first run takes about a minute.
 - It only runs on your own laptop (`http://127.0.0.1:8000`). Nobody on the Wi-Fi can reach it.
 - Every "secret" in the game is fake.
 
-**Got the folder some other way (zip, USB)?** Open a terminal in the
-`csai-leak-guard` folder and run `uv run leakguard.py`. (No `uv` yet? Install it with
-the first line of the setup command for your computer, or from
-[docs.astral.sh/uv](https://docs.astral.sh/uv/getting-started/installation/).)
+### Windows: if the one line doesn't work
+
+On some laptops the one-line command fails. Run it as separate steps instead,
+**one line at a time**, in PowerShell:
+
+```
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+**Now close PowerShell and open a new one** (so it can find `uv`), then:
+```
+cd $HOME
+```
+```
+iwr https://github.com/shreev2703/csai-leak-guard/archive/refs/heads/main.zip -OutFile lg.zip
+```
+```
+Expand-Archive lg.zip -DestinationPath . -Force
+```
+```
+cd csai-leak-guard-main
+```
+```
+uv run leakguard.py
+```
+
+To start it again later: open PowerShell, `cd $HOME\csai-leak-guard-main`, `uv run leakguard.py`.
+
+### Manual fallback: clone and run it yourself (any computer)
+
+The game is one Python file with **no dependencies**, so if you already have
+Python 3.9 or newer you don't need the installer or `uv` at all:
+
+```
+git clone https://github.com/shreev2703/csai-leak-guard.git
+cd csai-leak-guard
+python leakguard.py
+```
+On a Mac use `python3 leakguard.py`. (Check your version with `python --version` or `python3 --version`.)
+
+**No git?** On this page click the green **Code** button → **Download ZIP**, unzip it,
+open a terminal in that folder, and run `python leakguard.py` (Mac: `python3 leakguard.py`).
+
+**No Python either?** Install `uv` with the first Windows step above (Mac:
+`curl -LsSf https://astral.sh/uv/install.sh | sh`), open a new terminal, and run
+`uv run leakguard.py` in the folder. `uv` fetches Python for you.
 
 ---
 
@@ -106,6 +147,9 @@ That's the real trade-off every data-loss-prevention tool fights.
 | "Port in use" | It tries the next 20 ports automatically; use the link it prints. |
 | My edit broke it | Read the red error and its line number, or click **Reset to starter**. |
 | Windows says scripts are disabled | Make sure you pasted the *whole* line, including `powershell -ExecutionPolicy ByPass`. |
+| The Windows one-liner fails | Use **Windows: if the one line doesn't work** above: same thing, one command at a time. |
+| `uv` is "not recognized" | Close the terminal and open a new one after installing uv. |
+| Installer won't work at all | Use the **Manual fallback**: `git clone` (or Download ZIP), then `python leakguard.py`. |
 | Nothing works on my laptop | Join a teammate. Each team only needs one laptop. |
 
 ---
