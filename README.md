@@ -15,54 +15,45 @@ You only ever edit one file: **`filter.py`**, right in your browser.
 
 ## Setup
 
-Copy the line for your computer, paste it into a terminal, press Enter.
+Copy the lines for your computer, paste them into a terminal, press Enter.
 
 **Mac** (open the Terminal app):
 ```
 curl -LsSf https://raw.githubusercontent.com/shreev2703/csai-leak-guard/main/install.sh | sh
 ```
 
-**Windows** (open PowerShell from the Start menu):
-```
-powershell -ExecutionPolicy ByPass -c "irm https://raw.githubusercontent.com/shreev2703/csai-leak-guard/main/install.ps1 | iex"
-```
+**Windows** (open PowerShell from the Start menu), two steps:
 
-That's it. It installs [uv](https://docs.astral.sh/uv/) (which handles Python for you),
-puts the game in a `csai-leak-guard` folder in your home folder, and opens it in
+1. Install [uv](https://docs.astral.sh/uv/), one time. If it asks you to agree to terms, type `Y` and press Enter.
+   ```
+   winget install astral-sh.uv
+   ```
+   **Then close PowerShell and open a new one**, so it can find `uv`.
+2. Download and start the game:
+   ```
+   cd $HOME; if (!(Test-Path csai-leak-guard-main)) { iwr https://github.com/shreev2703/csai-leak-guard/archive/refs/heads/main.zip -OutFile lg.zip; Expand-Archive lg.zip . }; cd csai-leak-guard-main; uv run leakguard.py
+   ```
+
+That's it. `uv` handles Python for you. The game goes in a folder in your home
+folder (`csai-leak-guard` on a Mac, `csai-leak-guard-main` on Windows) and opens in
 your browser. The first run takes about a minute.
 
-- **To start it again later, paste the same line again.** It keeps your changes.
+*Why two steps on Windows?* A one-line "download a script and run it" command looks
+exactly like malware, so Microsoft Defender blocks it. Here nothing you download is
+run as a script: `winget` is Windows' own app installer, and step 2 only downloads a zip.
+
+- **To start it again later, paste the same line again** (Windows: step 2's line). It keeps your changes.
 - **To stop it,** press `Ctrl+C` in the terminal.
 - No account, no API key, no internet needed once it's installed.
 - It only runs on your own laptop (`http://127.0.0.1:8000`). Nobody on the Wi-Fi can reach it.
 - Every "secret" in the game is fake.
 
-### Windows: if the one line doesn't work
+### Windows: if `winget` isn't found
 
-On some laptops the one-line command fails. Run it as separate steps instead,
-**one line at a time**, in PowerShell:
-
-```
-powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-```
-**Now close PowerShell and open a new one** (so it can find `uv`), then:
-```
-cd $HOME
-```
-```
-iwr https://github.com/shreev2703/csai-leak-guard/archive/refs/heads/main.zip -OutFile lg.zip
-```
-```
-Expand-Archive lg.zip -DestinationPath . -Force
-```
-```
-cd csai-leak-guard-main
-```
-```
-uv run leakguard.py
-```
-
-To start it again later: open PowerShell, `cd $HOME\csai-leak-guard-main`, `uv run leakguard.py`.
+Older Windows 10 laptops may not have `winget`. Install Python instead from
+[python.org/downloads](https://www.python.org/downloads/) and tick **Add python.exe to PATH**
+during setup. Open a new PowerShell and paste step 2's line, but change the
+`uv run leakguard.py` at the end to `python leakguard.py`.
 
 ### Manual fallback: clone and run it yourself (any computer)
 
@@ -146,8 +137,8 @@ That's the real trade-off every data-loss-prevention tool fights.
 | Browser didn't open | Open the `http://127.0.0.1:...` link the terminal printed. |
 | "Port in use" | It tries the next 20 ports automatically; use the link it prints. |
 | My edit broke it | Read the red error and its line number, or click **Reset to starter**. |
-| Windows says scripts are disabled | Make sure you pasted the *whole* line, including `powershell -ExecutionPolicy ByPass`. |
-| The Windows one-liner fails | Use **Windows: if the one line doesn't work** above: same thing, one command at a time. |
+| Windows Security / Defender pops up | You used an old one-line install command. Use the two Windows steps above instead. |
+| `winget` is "not recognized" | See **Windows: if `winget` isn't found** above. |
 | `uv` is "not recognized" | Close the terminal and open a new one after installing uv. |
 | Installer won't work at all | Use the **Manual fallback**: `git clone` (or Download ZIP), then `python leakguard.py`. |
 | Nothing works on my laptop | Join a teammate. Each team only needs one laptop. |

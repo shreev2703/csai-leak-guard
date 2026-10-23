@@ -14,7 +14,7 @@ Everything you need to run the night, including the answer key. Members don't ne
    git push -u origin main
    ```
 4. Open the repo's **Actions** tab: the tests run on Mac, Windows and Linux. Green = good.
-5. Paste the README's Mac line into your own terminal once to confirm it opens.
+5. Run the README's setup on your own laptop once to confirm it opens.
 6. Post the setup lines in Discord that afternoon: "Paste this before you come, takes a minute."
 7. Bring a zip of the folder on a USB stick as a backup.
 
@@ -78,7 +78,7 @@ Each one beats a filter that only knows the exact shape. That's the lesson.
 ## If something goes wrong
 | Problem | Fix |
 | --- | --- |
-| Windows one-liner fails | Have them run the README's **Windows: if the one line doesn't work** steps one line at a time. Most common fix: close and reopen PowerShell after installing uv. |
+| Windows Defender blocks setup | They used an old one-line command. Have them follow the README's two Windows steps (`winget install astral-sh.uv`, then the download line). Most common snag: not reopening PowerShell after installing uv. |
 | Installer won't work at all | **Manual fallback:** `git clone https://github.com/shreev2703/csai-leak-guard.git`, `cd csai-leak-guard`, `python leakguard.py` (Mac: `python3`). Needs only Python 3.9+, no packages. No git? GitHub → Code → Download ZIP. |
 | A laptop won't install | Join a teammate. Every team only needs one laptop. |
 | Browser didn't open | Open the `http://127.0.0.1:8000` link the terminal printed. |
